@@ -1,0 +1,37 @@
+# local.yml - Starts the Django development server
+
+services:
+  db:
+    image: postgres:14
+    container_name: db_container_local # Renamed slightly to avoid conflict if default runs
+    volumes:
+      - postgres_data_local:/var/lib/postgresql/data/ # Separate volume for safety
+    environment:
+      # Make sure these are set correctly
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432" # Note: Port conflict if default db is running
+
+  app:
+    build: .
+    container_name: referral_app
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    # environment:
+    #   - DB_NAME=referral_db
+    #   - DB_USER=referral_user
+    #   - DB_PASSWORD=supersecretpassword # Use your strong password
+    #   - DB_HOST=db # Connects to the 'db' service defined above
+    #   - DB_PORT=5432
+    depends_on:
+      - db
+
+volumes:
+  postgres_data_local: # Separate volume definition

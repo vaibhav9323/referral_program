@@ -1,0 +1,38 @@
+# REMOVE the 'version:' line if it's still there
+
+services:
+  db:
+    image: postgres:14
+    container_name: db_container
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      # Make sure these are set correctly
+      - POSTGRES_DB=referral_db
+      - POSTGRES_USER=referral_user
+      - POSTGRES_PASSWORD=supersecretpassword # Use your strong password
+    ports:
+      - "5432:5432"
+
+  app:
+    build: . # Tells compose to build using the Dockerfile in the current directory
+    container_name: app_container
+    command: sleep infinity # Keep using sleep for initial setup
+    volumes:
+      # Mount the current local directory (.) to /app inside the container
+      # This ensures local code changes are reflected in the running container
+      - .:/app # <--- CHANGED BACK to /app
+    ports:
+      - "8000:8000"
+    environment:
+      # Make sure these match the db service
+      - DB_NAME=referral_db
+      - DB_USER=referral_user
+      - DB_PASSWORD=supersecretpassword # Use your strong password
+      - DB_HOST=db
+      - DB_PORT=5432
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
