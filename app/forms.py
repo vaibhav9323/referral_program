@@ -1,21 +1,32 @@
+import uuid
+
 from django import forms
 from django.contrib.auth.hashers import make_password
+
 from .models import User
-import uuid
 
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
     password_confirm = forms.CharField(
-        widget=forms.PasswordInput, label="Confirm Password")
+        widget=forms.PasswordInput, label="Confirm Password"
+    )
     # Field for entering someone else's code
     referral_code_used = forms.CharField(
-        required=False, max_length=10, label="Referral Code (Optional)")
+        required=False, max_length=10, label="Referral Code (Optional)"
+    )
 
     class Meta:
         model = User
-        fields = ['email', 'name', 'mobile_number', 'city',
-                  'password', 'password_confirm', 'referral_code_used']
+        fields = [
+            "email",
+            "name",
+            "mobile_number",
+            "city",
+            "password",
+            "password_confirm",
+            "referral_code_used",
+        ]
 
     def clean_password_confirm(self):
         password = self.cleaned_data.get("password")
@@ -25,7 +36,7 @@ class UserRegistrationForm(forms.ModelForm):
         return password_confirm
 
     def clean_referral_code_used(self):
-        code = self.cleaned_data.get('referral_code_used')
+        code = self.cleaned_data.get("referral_code_used")
         if code:
             try:
                 # Check if a user exists with this code
@@ -46,7 +57,7 @@ class UserRegistrationForm(forms.ModelForm):
             user.referral_code = str(uuid.uuid4())[:8]
 
         # Link to referrer if code was used
-        referral_code_used = self.cleaned_data.get('referral_code_used')
+        referral_code_used = self.cleaned_data.get("referral_code_used")
         if referral_code_used:
             try:
                 referrer = User.objects.get(referral_code=referral_code_used)
@@ -57,6 +68,7 @@ class UserRegistrationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
 
 # users/forms.py (add this class)
 

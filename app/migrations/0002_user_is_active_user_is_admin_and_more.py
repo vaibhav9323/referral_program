@@ -6,43 +6,43 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('app', '0001_initial'),
+        ("app", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='is_active',
+            model_name="user",
+            name="is_active",
             field=models.BooleanField(default=True),
         ),
         migrations.AddField(
-            model_name='user',
-            name='is_admin',
+            model_name="user",
+            name="is_admin",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='user',
-            name='is_referral_code_used',
+            model_name="user",
+            name="is_referral_code_used",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='user',
-            name='is_staff',
+            model_name="user",
+            name="is_staff",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='user',
-            name='is_superuser',
+            model_name="user",
+            name="is_superuser",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='user',
-            name='is_verified',
+            model_name="user",
+            name="is_verified",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='user',
-            name='last_login',
+            model_name="user",
+            name="last_login",
             field=models.DateTimeField(auto_now=True),
         ),
     ]

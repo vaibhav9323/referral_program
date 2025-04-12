@@ -1,20 +1,19 @@
 # referral_program/app/views.py
 
-from rest_framework import generics, status, permissions
+from django.contrib.auth import authenticate
+from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.contrib.auth import authenticate
-from .models import User
 # Import the necessary SimpleJWT view
 from rest_framework_simplejwt.views import TokenObtainPairView
+
+from .models import User
 # Import all your serializers, including the custom token one
-from .serializers import (
-    UserRegistrationSerializer,
-    UserLoginSerializer,
-    UserDetailSerializer,
-    RefereeDetailSerializer,
+from .serializers import \
     CustomTokenObtainPairSerializer  # <-- Ensure this is imported
-)
+from .serializers import (RefereeDetailSerializer, UserDetailSerializer,
+                          UserLoginSerializer, UserRegistrationSerializer)
+
 # from django.utils import timezone # Uncomment if using timezone.now()
 
 # --- Custom Token View ---
@@ -26,6 +25,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     Takes email and password, returns JWT access and refresh tokens.
     Uses the custom serializer to work with the 'email' field.
     """
+
     serializer_class = CustomTokenObtainPairSerializer
 
 
@@ -40,7 +40,12 @@ class UserRegistrationAPIView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response({"message": "User registered successfully."}, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            {"message": "User registered successfully."},
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
+
 
 # --- Custom User Login View (for /api/login/) ---
 
@@ -52,15 +57,20 @@ class UserLoginAPIView(APIView):
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data['email']
-        password = serializer.validated_data['password']
+        email = serializer.validated_data["email"]
+        password = serializer.validated_data["password"]
 
         try:
             user = User.objects.get(email=email)
             if not user.check_password(password):
-                return Response({"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response(
+                    {"error": "Invalid Credentials"},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
         except User.DoesNotExist:
-            return Response({"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
         if user is not None and user.is_active:
             # Optional: Update last_login
@@ -70,7 +80,11 @@ class UserLoginAPIView(APIView):
             response_serializer = UserDetailSerializer(user)
             return Response(response_serializer.data, status=status.HTTP_200_OK)
 
-        return Response({"error": "Invalid Credentials or Inactive User"}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(
+            {"error": "Invalid Credentials or Inactive User"},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
 
 # --- User Referrals View ---
 
@@ -88,5 +102,5 @@ class UserReferralsAPIView(generics.ListAPIView):
         user = self.request.user
         if user and user.is_authenticated:
             # Use the related_name 'referees' from the User model's referrer field
-            return user.referees.all().order_by('-registration_datetime')
+            return user.referees.all().order_by("-registration_datetime")
         return User.objects.none()  # Return empty if user not authenticated

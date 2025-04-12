@@ -4,3 +4,8 @@ gunicorn # For deployment (optional for local dev)
 djangorestframework # Add DRF
 djangorestframework-simplejwt # Add SimpleJWT
 python-dotenv # Useful for managing environment variables in .env file
+pre-commit
+black
+flake8
+pylint
+isort

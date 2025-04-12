@@ -73,30 +73,38 @@ WSGI_APPLICATION = "referral_program.wsgi.application"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 # Ensure environment variables are set correctly (e.g., in a .env file if using python-dotenv)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("POSTGRES_DB"),
+        "USER": os.environ.get("POSTGRES_USER"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
         # Should be 'db' if using docker-compose service name
-        'HOST': os.environ.get('DB_HOST'),
+        "HOST": os.environ.get("DB_HOST"),
         # Default to 5432 if not set
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
 
 # --- Add this line to explicitly define your custom user model ---
-AUTH_USER_MODEL = 'app.User'
+AUTH_USER_MODEL = "app.User"
 # --- End of added line ---
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator", },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", },
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator", },
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator", },
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 
@@ -124,14 +132,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Django REST Framework settings
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
         # Add others like SessionAuthentication if needed
     ),
-    'DEFAULT_PERMISSION_CLASSES': (
+    "DEFAULT_PERMISSION_CLASSES": (
         # Default to requiring authentication, override per-view if needed
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    )
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ),
 }
 
 # Simple JWT settings
