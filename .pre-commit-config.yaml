@@ -1,0 +1,55 @@
+# .pre-commit-config.yaml
+
+# Optional: Define default stages where hooks run
+# default_stages: [commit]
+
+repos:
+# == Basic Checks provided by pre-commit ==
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0 # Use the latest stable version
+    hooks:
+    -   id: trailing-whitespace # Removes trailing whitespace
+    -   id: end-of-file-fixer  # Ensures files end with a single newline
+    -   id: check-yaml         # Checks YAML files for parseable syntax
+    -   id: check-added-large-files # Prevents committing large files
+    -   id: check-merge-conflict    # Checks for files that contain merge conflict strings
+    # -   id: detect-private-key # Checks for private keys (use with caution, might have false positives)
+
+# == Python Formatting ==
+-   repo: https://github.com/psf/black
+    rev: 24.4.2 # Use the version compatible with your project
+    hooks:
+    -   id: black
+        # Optional: Specify Python version if needed, e.g., language_version: python3.10
+
+# == Import Sorting ==
+-   repo: https://github.com/pycqa/isort
+    rev: 5.13.2 # Use the latest stable version
+    hooks:
+      - id: isort
+        name: isort (python)
+        # Optional: Add args if you have specific config, e.g., args: ["--profile", "black"]
+
+# == Python Linting (Style & Errors) ==
+-   repo: https://github.com/pycqa/flake8
+    rev: 7.1.0 # Use the latest stable version
+    hooks:
+    -   id: flake8
+        # Optional: Add args for configuration if not using setup.cfg/tox.ini/.flake8
+        # args: ['--max-line-length=88', '--extend-ignore=E203']
+        # You can add additional dependencies needed by flake8 plugins here:
+        # additional_dependencies: [flake8-bugbear]
+
+# == Python Linting (More Comprehensive - Can be slow/noisy) ==
+-   repo: https://github.com/pylint-dev/pylint
+    rev: v3.2.2 # Use the latest stable version compatible with your project
+    hooks:
+    -   id: pylint
+        name: pylint
+        # args:
+        #   - --rcfile=.pylintrc # Recommend using a config file
+        #   - --load-plugins=pylint_django # Example for Django plugin
+        # Exclude files if needed, e.g., migrations, tests
+        # exclude: ^(app/migrations/|tests/)
+        # Pylint can be slow, you might want to run it less often or configure it heavily.
+        # Consider disabling checks in a .pylintrc file.
