@@ -2,15 +2,16 @@
 
 ## Overview
 
-This project implements a simple user referral system using Django, PostgreSQL, and Docker. It fulfills the requirements outlined in the "Backend Engineer Assignment" [cite: uploaded:Backend Engineer Assignment.pdf], including:
+This project implements a simple user referral system using Django, PostgreSQL, and Docker:
 
-* User Registration with unique referral code generation [cite: uploaded:Backend Engineer Assignment.pdf].
-* Tracking of referrer/referee relationships [cite: uploaded:Backend Engineer Assignment.pdf].
-* User Login [cite: uploaded:Backend Engineer Assignment.pdf].
-* An endpoint (planned, not yet implemented) to view referred users [cite: uploaded:Backend Engineer Assignment.pdf].
-* JWT token endpoints for potential API authentication [cite: uploaded:referral_program/urls.py].
+* User Registration with unique referral code generation.
+* Tracking of referrer/referee relationships.
+* User Login using email and password, establishing a session.
+* A protected home page accessible only after login.
+* JWT token endpoints for potential API authentication.
+* An endpoint (planned, not yet implemented) to view referred users.
 
-The application is containerized using Docker and Docker Compose for easy setup and deployment.
+The application is containerized using Docker and Docker Compose for easy setup and development.
 
 ## Prerequisites
 
@@ -19,61 +20,73 @@ The application is containerized using Docker and Docker Compose for easy setup 
 
 ## Setup
 
-1.  **Clone the Repository:** (Assuming this code is in a Git repository)
+1.  **Clone the Repository:** (If applicable)
     ```bash
     git clone <your-repository-url>
     cd referral_program
     ```
-    Or simply navigate to the project directory `E:\Study\python\referral_program`.
+    Or navigate to your existing project directory (`E:\Study\python\referral_program`).
 
-2.  **Create Environment File:** Create a file named `.env` in the project root directory by copying the example below. **Fill in your actual secure values** for `POSTGRES_PASSWORD` and `SECRET_KEY`.
+2.  **Create Environment File (`.env`):**
+    Create a file named `.env` in the project root directory. Copy the content below and **replace placeholder values** with your actual database password and Django secret key.
     ```dotenv
     # .env
 
     # Database Settings
     POSTGRES_DB=referral_db
     POSTGRES_USER=referral_user
-    POSTGRES_PASSWORD=YOUR_STRONG_DB_PASSWORD # Replace with a secure password
-    DB_HOST=db # Service name in docker-compose.yml / local.yml
+    POSTGRES_PASSWORD=YOUR_STRONG_DB_PASSWORD # Replace with your secure password
+    DB_HOST=db # Matches the db service name in docker-compose/local.yml
     DB_PORT=5432
 
     # Django Settings
-    SECRET_KEY='YOUR_DJANGO_SECRET_KEY' # Replace with the key from settings.py or generate a new one
-    DEBUG=True # Set to False in production
+    SECRET_KEY='YOUR_DJANGO_SECRET_KEY' # Replace with your actual secret key
+    DEBUG=True # Set to False for production
     ```
-    **Important:** Add `.env` to your `.gitignore` file to prevent committing secrets.
 
-3.  **Review Configuration:** Check the `Dockerfile`, `docker-compose.yml`, `local.yml`, and `settings.py` if needed [cite: uploaded:referral_program/Dockerfile, uploaded:referral_program/docker-compose.yml, uploaded:referral_program/local.yml, uploaded:referral_program/settings.py]. Ensure `settings.py` reads configuration from environment variables [cite: uploaded:referral_program/settings.py].
+3.  **Add `.env` to `.gitignore`:**
+    Ensure your `.gitignore` file (create one if it doesn't exist) includes `.env` to prevent committing sensitive information:
+    ```gitignore
+    # .gitignore
+    .env
+    __pycache__/
+    *.pyc
+    # Add other patterns like virtual env folders if needed
+    ```
+
+4.  **Review Configuration:**
+    * Ensure `settings.py` reads database credentials, `SECRET_KEY`, and `DEBUG` from environment variables using `os.environ.get()` [cite: uploaded:referral_program/settings.py].
+    * Ensure `docker-compose.yml` and `local.yml` use `env_file: - .env` for the `app` service and pass necessary variables to the `db` service environment [cite: uploaded:referral_program/docker-compose.yml, uploaded:referral_program/local.yml].
+    * Ensure `Dockerfile` uses `/app` consistently for `WORKDIR` and `COPY` destinations, matching the volume mount in the compose files [cite: uploaded:referral_program/Dockerfile, uploaded:referral_program/docker-compose.yml].
 
 ## Running the Application (Development)
 
-This uses the `local.yml` file which automatically starts the Django development server.
+This uses the `local.yml` file, which automatically starts the Django development server.
 
-1.  **Build the Docker images:**
+1.  **Build Docker Images:** (Needed initially or after `Dockerfile`/`requirements.txt` changes)
     ```bash
     docker-compose -f local.yml build
     ```
 
-2.  **Run Database Migrations:** Start the database container first, then run migrations inside the app container.
-    ```bash
-    # Start DB service temporarily (if not running)
-    docker-compose -f local.yml up -d db
+2.  **Run Database Migrations:** (Crucial before first run or after model changes)
+    * Ensure the database container is running. You might need to start it separately first if running migrations before the app: `docker-compose -f local.yml up -d db`
+    * Run migrations using the `app` service definition:
+        ```bash
+        # Run migrations using a temporary container based on the app service
+        docker-compose -f local.yml run --rm app python manage.py migrate
+        ```
+        *Alternatively, if using `docker-compose.yml` with `command: sleep infinity`:*
+        ```bash
+        # docker-compose up -d
+        # docker-compose exec app python manage.py migrate
+        # docker-compose down # Stop if needed before using local.yml
+        ```
 
-    # Run migrations inside a temporary app container or the main one if using sleep infinity in docker-compose.yml
-    # Assuming you have the 'app' service defined in local.yml to build upon:
-    docker-compose -f local.yml run --rm app python manage.py migrate
-    # Or, if using the default docker-compose.yml with 'sleep infinity':
-    # docker-compose up -d
-    # docker-compose exec app python manage.py migrate
-    # docker-compose down
-    ```
-    *(Ensure migrations are run at least once before starting the server for the first time)*
-
-3.  **Start the Application and Database:**
+3.  **Start Application & Database:**
     ```bash
     docker-compose -f local.yml up -d
     ```
-    The application will be accessible at [http://localhost:8000](http://localhost:8000).
+    The application should now be running and accessible at [http://localhost:8000](http://localhost:8000).
 
 4.  **Stopping the Application:**
     ```bash
@@ -82,30 +95,31 @@ This uses the `local.yml` file which automatically starts the Django development
 
 ## Running Management Commands
 
-To run commands like `makemigrations`, `migrate`, `createsuperuser`, etc., use `docker-compose exec`:
+To run other Django `manage.py` commands (like `createsuperuser`, `makemigrations`, `check`, etc.):
 
-1.  Ensure containers are running (`docker-compose -f local.yml up -d`).
-2.  Execute the command:
+1.  Ensure containers are running: `docker-compose -f local.yml up -d`
+2.  Use `docker-compose exec`:
     ```bash
     docker-compose -f local.yml exec app python manage.py <your_command>
-    # Example:
+    # Examples:
     # docker-compose -f local.yml exec app python manage.py makemigrations app
     # docker-compose -f local.yml exec app python manage.py createsuperuser
+    # docker-compose -f local.yml exec app python manage.py check
     ```
 
 ## Key Features & URLs
 
-* **Registration:** `/register/` [cite: uploaded:referral_program/app/urls.py] - Renders and processes the registration form [cite: uploaded:referral_program/app/views.py].
-* **Login:** `/` (Root URL) [cite: uploaded:referral_program/app/urls.py] - Renders and processes the login form [cite: uploaded:referral_program/app/views.py].
-* **Home/Dashboard:** `/home/` [cite: uploaded:referral_program/app/urls.py] - Placeholder page after successful login, requires authentication [cite: uploaded:referral_program/app/views.py].
-* **JWT Token Obtain:** `/api/token/` [cite: uploaded:referral_program/urls.py] - POST email/password to get JWT access/refresh tokens.
-* **JWT Token Refresh:** `/api/token/refresh/` [cite: uploaded:referral_program/urls.py] - POST refresh token to get a new access token.
-* **Referral View:** (To be implemented - as per original requirements [cite: uploaded:Backend Engineer Assignment.pdf])
+* **Registration:** `http://localhost:8000/register/` [cite: uploaded:referral_program/app/urls.py]
+* **Login:** `http://localhost:8000/` [cite: uploaded:referral_program/app/urls.py]
+* **Home/Dashboard:** `http://localhost:8000/home/` (Requires login) [cite: uploaded:referral_program/app/urls.py, uploaded:referral_program/app/views.py]
+* **JWT Token Obtain:** `http://localhost:8000/api/token/` (POST email/password) [cite: uploaded:referral_program/urls.py]
+* **JWT Token Refresh:** `http://localhost:8000/api/token/refresh/` (POST refresh token) [cite: uploaded:referral_program/urls.py]
+* **Referral View:** (Not yet implemented)
 
 ## Technology Stack
 
 * **Backend:** Django [cite: uploaded:referral_program/requirements.txt]
 * **Database:** PostgreSQL [cite: uploaded:referral_program/docker-compose.yml]
-* **Authentication:** Django Sessions (via `login_required`), JWT (via `djangorestframework-simplejwt`) [cite: uploaded:referral_program/requirements.txt]
+* **Authentication:** Django Sessions (`@login_required`), JWT (`djangorestframework-simplejwt`) [cite: uploaded:referral_program/requirements.txt, uploaded:referral_program/settings.py]
 * **Containerization:** Docker, Docker Compose
-* **WSGI Server (for production):** Gunicorn [cite: uploaded:referral_program/requirements.txt]
+* **WSGI Server (Production):** Gunicorn [cite: uploaded:referral_program/requirements.txt]
