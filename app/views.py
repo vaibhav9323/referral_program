@@ -1,59 +1,92 @@
-from django.contrib.auth.decorators import login_required  # <--- IMPORT THIS
-from django.contrib.auth import authenticate, login as auth_login  # <-- IMPORT login
-from django.shortcuts import render, redirect
-from .forms import UserRegistrationForm
-from django.contrib import messages
-from app.forms import LoginForm
-from .models import User  # <-- Import User model
-from django.contrib.auth.hashers import check_password
+# referral_program/app/views.py
+
+from rest_framework import generics, status, permissions
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.contrib.auth import authenticate
+from .models import User
+# Import the necessary SimpleJWT view
+from rest_framework_simplejwt.views import TokenObtainPairView
+# Import all your serializers, including the custom token one
+from .serializers import (
+    UserRegistrationSerializer,
+    UserLoginSerializer,
+    UserDetailSerializer,
+    RefereeDetailSerializer,
+    CustomTokenObtainPairSerializer  # <-- Ensure this is imported
+)
+# from django.utils import timezone # Uncomment if using timezone.now()
+
+# --- Custom Token View ---
+# This view uses your custom serializer for the /api/token/ endpoint
 
 
-def register_view(request):
-    if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(
-                request, 'Registration successful! Please log in.')
-            return redirect('login')  # Redirect to login page name/URL
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = UserRegistrationForm()
-    return render(request, 'app/registration.html', {'form': form})
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Takes email and password, returns JWT access and refresh tokens.
+    Uses the custom serializer to work with the 'email' field.
+    """
+    serializer_class = CustomTokenObtainPairSerializer
 
 
-def login_view(request):
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data.get('email')
-            password = form.cleaned_data.get('password')
+# --- User Registration View ---
+class UserRegistrationAPIView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserRegistrationSerializer
+    permission_classes = [permissions.AllowAny]  # Anyone can register
 
-            # Manual Authentication Check:
-            try:
-                user = User.objects.get(email=email)
-                # Check password using the hash stored in the database
-                if check_password(password, user.password):
-                    # Password is correct! Log the user in to establish a session
-                    # <--- Use Django's login function
-                    auth_login(request, user)
-                    messages.success(
-                        request, f'Login successful! Welcome {user.name}.')
-                    return redirect('home')  # Redirect to the home page
-                else:
-                    # Password incorrect
-                    messages.error(request, 'Invalid email or password.')
-            except User.DoesNotExist:
-                # User email not found
-                messages.error(request, 'Invalid email or password.')
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = LoginForm()
-    return render(request, 'app/login.html', {'form': form})
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response({"message": "User registered successfully."}, status=status.HTTP_201_CREATED, headers=headers)
+
+# --- Custom User Login View (for /api/login/) ---
 
 
-@login_required
-def home_view(request):
-    return render(request, 'app/home.html')
+class UserLoginAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = UserLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+
+        try:
+            user = User.objects.get(email=email)
+            if not user.check_password(password):
+                return Response({"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+        except User.DoesNotExist:
+            return Response({"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if user is not None and user.is_active:
+            # Optional: Update last_login
+            # user.last_login = timezone.now()
+            # user.save(update_fields=['last_login'])
+
+            response_serializer = UserDetailSerializer(user)
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+        return Response({"error": "Invalid Credentials or Inactive User"}, status=status.HTTP_401_UNAUTHORIZED)
+
+# --- User Referrals View ---
+
+
+class UserReferralsAPIView(generics.ListAPIView):
+    serializer_class = RefereeDetailSerializer
+    # Enforce authentication
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Return a list of users referred by the currently authenticated user.
+        Uses request.user provided by DRF/JWT authentication.
+        """
+        user = self.request.user
+        if user and user.is_authenticated:
+            # Use the related_name 'referees' from the User model's referrer field
+            return user.referees.all().order_by('-registration_datetime')
+        return User.objects.none()  # Return empty if user not authenticated
