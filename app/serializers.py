@@ -1,11 +1,13 @@
 # referral_program/app/serializers.py
 
-from rest_framework import serializers
-from .models import User
-from django.contrib.auth.hashers import make_password
 import uuid
+
+from django.contrib.auth.hashers import make_password
+from rest_framework import serializers
 # Import the SimpleJWT serializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from .models import User
 
 # --- Custom Token Serializer ---
 # This serializer ensures SimpleJWT uses the 'email' field based on your User model's USERNAME_FIELD
@@ -30,24 +32,33 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # data['email'] = self.user.email
         return data
 
+
 # --- User Registration Serializer ---
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, style={
-                                     'input_type': 'password'})
+    password = serializers.CharField(
+        write_only=True, required=True, style={"input_type": "password"}
+    )
     referral_code_used = serializers.CharField(
-        max_length=10, required=False, allow_blank=True, write_only=True)
+        max_length=10, required=False, allow_blank=True, write_only=True
+    )
 
     class Meta:
         model = User
-        fields = ['email', 'name', 'mobile_number',
-                  'city', 'password', 'referral_code_used']
+        fields = [
+            "email",
+            "name",
+            "mobile_number",
+            "city",
+            "password",
+            "referral_code_used",
+        ]
         extra_kwargs = {
-            'email': {'required': True},
-            'name': {'required': True},
-            'mobile_number': {'required': True},
-            'city': {'required': True},
+            "email": {"required": True},
+            "name": {"required": True},
+            "mobile_number": {"required": True},
+            "city": {"required": True},
         }
 
     def validate_referral_code_used(self, value):
@@ -55,24 +66,23 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             try:
                 User.objects.get(referral_code=value)
             except User.DoesNotExist:
-                raise serializers.ValidationError(
-                    "Invalid referral code provided.")
+                raise serializers.ValidationError("Invalid referral code provided.")
         return value
 
     def create(self, validated_data):
-        referral_code_used = validated_data.pop('referral_code_used', None)
+        referral_code_used = validated_data.pop("referral_code_used", None)
         referrer = None
         if referral_code_used:
             referrer = User.objects.get(referral_code=referral_code_used)
 
         user = User(
-            email=validated_data['email'],
-            name=validated_data['name'],
-            mobile_number=validated_data['mobile_number'],
-            city=validated_data['city'],
-            referrer=referrer
+            email=validated_data["email"],
+            name=validated_data["name"],
+            mobile_number=validated_data["mobile_number"],
+            city=validated_data["city"],
+            referrer=referrer,
         )
-        user.set_password(validated_data['password'])  # Hash password
+        user.set_password(validated_data["password"])  # Hash password
 
         user.referral_code = str(uuid.uuid4())[:8]
         while User.objects.filter(referral_code=user.referral_code).exists():
@@ -81,13 +91,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+
 # --- User Login Serializer (for the custom /api/login/ endpoint) ---
 
 
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(required=True, write_only=True, style={
-                                     'input_type': 'password'})
+    password = serializers.CharField(
+        required=True, write_only=True, style={"input_type": "password"}
+    )
+
 
 # --- User Detail Serializer (for the custom /api/login/ response) ---
 
@@ -95,7 +108,8 @@ class UserLoginSerializer(serializers.Serializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email']
+        fields = ["id", "email"]
+
 
 # --- Referee Detail Serializer (for the /api/referrals/ endpoint) ---
 
@@ -103,4 +117,4 @@ class UserDetailSerializer(serializers.ModelSerializer):
 class RefereeDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['name', 'email', 'registration_datetime']
+        fields = ["name", "email", "registration_datetime"]

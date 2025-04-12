@@ -6,38 +6,38 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('app', '0002_user_is_active_user_is_admin_and_more'),
+        ("app", "0002_user_is_active_user_is_admin_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='user',
-            name='is_admin',
+            model_name="user",
+            name="is_admin",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='is_referral_code_used',
+            model_name="user",
+            name="is_referral_code_used",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='is_staff',
+            model_name="user",
+            name="is_staff",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='is_superuser',
+            model_name="user",
+            name="is_superuser",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='is_verified',
+            model_name="user",
+            name="is_verified",
         ),
         migrations.AlterField(
-            model_name='user',
-            name='last_login',
+            model_name="user",
+            name="last_login",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='referral_code',
+            model_name="user",
+            name="referral_code",
             field=models.CharField(blank=True, max_length=10, null=True, unique=True),
         ),
     ]
