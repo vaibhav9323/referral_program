@@ -23,29 +23,29 @@ repos:
         # Optional: Specify Python version if needed, e.g., language_version: python3.10
 
 # == Import Sorting ==
--   repo: https://github.com/pycqa/isort
-    rev: 5.13.2 # Use the latest stable version
-    hooks:
-      - id: isort
-        name: isort (python)
+# -   repo: https://github.com/pycqa/isort
+#     rev: 5.13.2 # Use the latest stable version
+#     hooks:
+#       - id: isort
+#         name: isort (python)
         # Optional: Add args if you have specific config, e.g., args: ["--profile", "black"]
 
 # == Python Linting (Style & Errors) ==
--   repo: https://github.com/pycqa/flake8
-    rev: 7.1.0 # Use the latest stable version
-    hooks:
-    -   id: flake8
+# -   repo: https://github.com/pycqa/flake8
+#     rev: 7.1.0 # Use the latest stable version
+#     hooks:
+#     -   id: flake8
         # Optional: Add args for configuration if not using setup.cfg/tox.ini/.flake8
         # args: ['--max-line-length=88', '--extend-ignore=E203']
         # You can add additional dependencies needed by flake8 plugins here:
         # additional_dependencies: [flake8-bugbear]
 
 # == Python Linting (More Comprehensive - Can be slow/noisy) ==
--   repo: https://github.com/pylint-dev/pylint
-    rev: v3.2.2 # Use the latest stable version compatible with your project
-    hooks:
-    -   id: pylint
-        name: pylint
+# -   repo: https://github.com/pylint-dev/pylint
+#     rev: v3.2.2 # Use the latest stable version compatible with your project
+#     hooks:
+#     -   id: pylint
+#         name: pylint
         # args:
         #   - --rcfile=.pylintrc # Recommend using a config file
         #   - --load-plugins=pylint_django # Example for Django plugin

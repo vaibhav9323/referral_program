@@ -1,18 +1,18 @@
 # referral_program/app/views.py
 
-from django.contrib.auth import authenticate
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-# Import the necessary SimpleJWT view
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import User
-# Import all your serializers, including the custom token one
-from .serializers import \
-    CustomTokenObtainPairSerializer  # <-- Ensure this is imported
-from .serializers import (RefereeDetailSerializer, UserDetailSerializer,
-                          UserLoginSerializer, UserRegistrationSerializer)
+from .serializers import (
+    CustomTokenObtainPairSerializer,
+    RefereeDetailSerializer,
+    UserDetailSerializer,
+    UserLoginSerializer,
+    UserRegistrationSerializer,
+)
 
 # from django.utils import timezone # Uncomment if using timezone.now()
 
@@ -101,6 +101,5 @@ class UserReferralsAPIView(generics.ListAPIView):
         """
         user = self.request.user
         if user and user.is_authenticated:
-            # Use the related_name 'referees' from the User model's referrer field
             return user.referees.all().order_by("-registration_datetime")
         return User.objects.none()  # Return empty if user not authenticated
