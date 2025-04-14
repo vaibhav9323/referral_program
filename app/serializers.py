@@ -40,7 +40,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True, required=True, style={"input_type": "password"}
     )
-    referral_code_used = serializers.CharField(
+    referral = serializers.CharField(
         max_length=10, required=False, allow_blank=True, write_only=True
     )
 
@@ -52,7 +52,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             "mobile_number",
             "city",
             "password",
-            "referral_code_used",
+            "referral",
         ]
         extra_kwargs = {
             "email": {"required": True},
@@ -70,7 +70,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        referral_code_used = validated_data.pop("referral_code_used", None)
+        referral_code_used = validated_data.pop("referral", None)
         referrer = None
         if referral_code_used:
             referrer = User.objects.get(referral_code=referral_code_used)
