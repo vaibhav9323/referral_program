@@ -2,8 +2,11 @@
 
 import uuid
 
-from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
-                                        PermissionsMixin)
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 from django.db import models
 
 # --- Custom User Manager ---
@@ -52,7 +55,11 @@ class UserManager(BaseUserManager):
         user = self.create_user(email, password, **extra_fields)
         return user
 
-    # This method is crucial for ModelBackend authentication with email as USERNAME_FIELD
+    """
+    This method is crucial for ModelBackend
+    authentication with email as USERNAME_FIELD
+    """
+
     def get_by_natural_key(self, email):
         return self.get(email=email)
 
@@ -62,16 +69,19 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     # Mandatory, unique identifier
     email = models.EmailField(unique=True, blank=False, null=False)
+
     name = models.CharField(max_length=100, blank=False, null=False)  # Mandatory
+
     mobile_number = models.CharField(
         max_length=15, blank=False, null=False
     )  # Mandatory
+
     city = models.CharField(max_length=100, blank=False, null=False)  # Mandatory
 
-    # Referral fields
     referral_code = models.CharField(
         max_length=10, unique=True, blank=True, null=True
     )  # Generated automatically
+
     referrer = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,  # Keep referee even if referrer is deleted
@@ -79,39 +89,19 @@ class User(AbstractBaseUser, PermissionsMixin):
         blank=True,
         related_name="referees",  # Easy access to users referred by this user
     )
+
     registration_datetime = models.DateTimeField(auto_now_add=True)
 
-    # Fields required by Django admin and auth system
-    # AbstractBaseUser provides 'password' and 'last_login'
     is_staff = models.BooleanField(default=False)  # Required for admin access
-    # Designates whether this user should be treated as active.
     is_active = models.BooleanField(default=True)
-    # PermissionsMixin provides 'is_superuser', 'groups', 'user_permissions'
 
     # --- Configuration ---
     objects = UserManager()  # Use the custom manager
 
     USERNAME_FIELD = "email"  # Use email for login instead of username
+
     # Fields prompted for createsuperuser command
     REQUIRED_FIELDS = ["name", "mobile_number", "city"]
 
     def __str__(self):
         return self.email
-
-    # No need for set_password or check_password here, AbstractBaseUser handles it.
-    # No need for is_authenticated, is_anonymous, has_perm, has_module_perms here,
-    # AbstractBaseUser and PermissionsMixin handle them.
-
-    # Override save to handle referrer linking if needed during registration
-    # Note: Referral code generation is now handled in the UserManager.create_user
-    # Referrer linking logic might be better placed in the registration serializer/view.
-    # def save(self, *args, **kwargs):
-    #     # Example: If linking referrer based on a field set before save
-    #     # referral_code_used = getattr(self, '_referral_code_used', None)
-    #     # if referral_code_used and not self.referrer_id:
-    #     #     try:
-    #     #         referrer = User.objects.get(referral_code=referral_code_used)
-    #     #         self.referrer = referrer
-    #     #     except User.DoesNotExist:
-    #     #         pass # Or handle error
-    #     super().save(*args, **kwargs)
