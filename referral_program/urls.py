@@ -17,7 +17,6 @@ urlpatterns = [
     # Keep the default view for refreshing the token (/api/token/refresh/)
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # --- App API Endpoints ---
-    # Include your app's URLs (register, login, referrals)
     # This line includes the paths defined in app/urls.py
     path("", include("app.urls")),
 ]
