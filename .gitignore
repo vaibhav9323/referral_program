@@ -4,4 +4,3 @@ __pycache__/
 *.pyc
 db.sqlite3 # If you ever used sqlite
 refer_venv
-# Add other files/directories to ignore (e.g., virtual environments)
