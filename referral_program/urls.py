@@ -14,9 +14,15 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # --- JWT Token Endpoints ---
     # Use your custom view for obtaining the token pair (/api/token/)
-    path("api/token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path(
+        "api/token/",
+        CustomTokenObtainPairView.as_view(),
+        name="token_obtain_pair"),
     # Keep the default view for refreshing the token (/api/token/refresh/)
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path(
+        "api/token/refresh/",
+        TokenRefreshView.as_view(),
+        name="token_refresh"),
     # --- App API Endpoints ---
     # This line includes the paths defined in app/urls.py
     path("", include("app.urls")),
