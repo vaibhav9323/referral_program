@@ -14,10 +14,7 @@ from .serializers import (
     UserRegistrationSerializer,
 )
 
-# from django.utils import timezone # Uncomment if using timezone.now()
-
-# --- Custom Token View ---
-# This view uses your custom serializer for the /api/token/ endpoint
+from django.utils import timezone
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -74,8 +71,8 @@ class UserLoginAPIView(APIView):
 
         if user is not None and user.is_active:
             # Optional: Update last_login
-            # user.last_login = timezone.now()
-            # user.save(update_fields=['last_login'])
+            user.last_login = timezone.now()
+            user.save(update_fields=["last_login"])
 
             response_serializer = UserDetailSerializer(user)
             return Response(response_serializer.data, status=status.HTTP_200_OK)
