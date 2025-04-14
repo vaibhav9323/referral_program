@@ -2,15 +2,12 @@
 
 import uuid
 
-from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
+
 # Import the SimpleJWT serializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import User
-
-# --- Custom Token Serializer ---
-# This serializer ensures SimpleJWT uses the 'email' field based on your User model's USERNAME_FIELD
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
